@@ -1,23 +1,31 @@
 const form = document.querySelector('form'),
-	detail = document.querySelector('.detail');
+	detail = document.querySelector('.detail'),
+	card = document.querySelector('.card'),
+	time = document.querySelector('img.time'),
+	icon = document.querySelector('.icon img');
 
+//ON SUBMIT
 form.addEventListener('submit', (e) => {
 	e.preventDefault();
 	const city = form.city.value.trim();
-	console.log(city);
+	//console.log(city);
 
 	updateCity(city).then((data) => {
 		updateUI(data);
-		console.log(data);
+		//console.log(data);
 	});
 
 	form.reset();
+	//KEEP THE CITY IN THE LOCAL STORAGE
+	localStorage.setItem('city', city);
 });
 
+//UPDATE UI
 const updateUI = (data) => {
-	const cityDetail = data.cityDetail;
-	const weatherForecast = data.weatherForecast;
+	//GET DATA FROM updateCity()
+	const { cityDetail, weatherForecast } = data;
 
+	//UPDATE INFO
 	detail.innerHTML = `
 	<div class="text-muted text-center detail">
 		<h5 class="my-3 city">${cityDetail.LocalizedName}</h5>
@@ -27,8 +35,23 @@ const updateUI = (data) => {
 		</div>
 	</div>
 	`;
+	//UPDATE DAY TIME & ICON
+	const iconSrc = `./img/icons/${weatherForecast.WeatherIcon}.svg`;
+	icon.setAttribute('src', iconSrc);
+
+	let dayTimeSrc = weatherForecast.IsDayTime
+		? './img/day.svg'
+		: './img/night.svg';
+
+	time.setAttribute('src', dayTimeSrc);
+
+	//DISPLAY HIDDEN CARD
+	if (card.classList.contains('d-none')) {
+		card.classList.remove('d-none');
+	}
 };
 
+//UPDATE CITY
 const updateCity = async (city) => {
 	const cityDetail = await getCity(city);
 	const weatherForecast = await getWeather(cityDetail.Key);
@@ -39,15 +62,9 @@ const updateCity = async (city) => {
 	};
 };
 
-/* //data coming from API
-const temperature = Math.round(
-	data.weatherForecast.Temperature.Metric.Value
-);
-const cityName = data.cityDetail.AdministrativeArea.LocalizedName;
-const dayTime = data.weatherForecast.IsDayTime;
-const weatherText = data.weatherForecast.WeatherText;
-//put info
-deg.innerHTML = `${temperature}&deg;`;
-theCity.textContent = cityName;
-console.log(dayTime);
-console.log(weatherText); */
+if (localStorage.getItem('city')) {
+	updateCity(localStorage.getItem('city')).then((data) => {
+		updateUI(data);
+		//console.log(data);
+	});
+}
